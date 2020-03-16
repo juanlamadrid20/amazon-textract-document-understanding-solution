@@ -107,7 +107,7 @@ def processRequest(request):
     ddb = dynamodb.Table(outputTable)
 
     opg = OutputGenerator(jobTag, pages, outputBucketName, objectName, detectForms, detectTables, ddb, elasticsearchDomain)
-    docText = opg.run()
+    docText, key_val_pairs = opg.run()
 
     generatePdf(jobTag, bucketName, objectName, outputBucketName)
 
@@ -122,7 +122,7 @@ def processRequest(request):
     print("Processed Comprehend Data: {}".format(processedComprehendData))
 
     # index document once the comprehend entities have been extracted
-    opg.indexDocument(docText,processedComprehendData)
+    opg.indexDocument(docText,processedComprehendData,key_val_pairs)
 
     ds = datastore.DocumentStore(documentsTable, outputTable)
     ds.markDocumentComplete(jobTag)

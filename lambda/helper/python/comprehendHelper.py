@@ -231,6 +231,7 @@ class ComprehendHelper:
         
         data = {}
         data['results'] = []
+        medical_entities_to_index = {}
         
         for p in range(0, numOfPages):
             page = {}
@@ -255,6 +256,10 @@ class ComprehendHelper:
                     
                     page['Entities'].append(entity)
                     
+                    if e['Category'] not in medical_entities_to_index:
+                        medical_entities_to_index[e['Category']] = []
+                    medical_entities_to_index[e['Category']].append(e['Text'])
+
                     # make a note of this added entity
                     entities.add(e['Text'].upper())
         
@@ -262,6 +267,7 @@ class ComprehendHelper:
         
         # create results file in S3 under document folder
         S3Helper.writeToS3(json.dumps(data), bucket, documentPath + "comprehendMedicalEntities.json")
+        return medical_entities_to_index
 
     
     #
@@ -443,10 +449,12 @@ class ComprehendHelper:
                                        documentPath)
                                   
         # process comprehend medical data, create the entities result file in S3
-        self.processComprehendMedicalEntities(comprehendMedicalEntities,
+        comprehendMedicalEntities = self.processComprehendMedicalEntities(comprehendMedicalEntities,
                                               numOfPages,
                                               bucket,
                                               documentPath)
+        # final list of comprehend and comprehend medical entities to be indexed
+        processedComprehendData.update(comprehendMedicalEntities)
 
         # process comprehend medical data, create the ICD10 result file in S3
         self.processComprehendMedicalICD10(comprehendMedicalICD10,

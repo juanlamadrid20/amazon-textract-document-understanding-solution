@@ -78,7 +78,7 @@ def processImage(documentId, features, bucketName, outputBucketName, objectName,
     print("Generating output for DocumentId: {}".format(documentId))
 
     opg = OutputGenerator(documentId, response, outputBucketName, objectName, detectForms, detectTables, ddb, elasticsearchDomain)
-    docText = opg.run()
+    docText, key_val_pairs = opg.run()
 
     generatePdf(documentId, bucketName, objectName, outputBucketName)
    
@@ -92,7 +92,7 @@ def processImage(documentId, features, bucketName, outputBucketName, objectName,
     print("DocumentId: {}".format(documentId))
     print("Processed Comprehend data: {}".format(processedComprehendData))
 
-    opg.indexDocument(docText,processedComprehendData)
+    opg.indexDocument(docText,processedComprehendData,key_val_pairs)
 
     ds = datastore.DocumentStore(documentsTableName, outputTableName)
     ds.markDocumentComplete(documentId)
