@@ -38,8 +38,9 @@ def format_date(date):
         try:
             return datetime.datetime.strptime(date,pattern)
         except:
-            print("Date format not matched {}".format(date))
-            return UNSUPPORTED_DATE_FORMAT
+            pass
+    print("Date format not matched {}".format(date))
+    return UNSUPPORTED_DATE_FORMAT
 
 class OutputGenerator:
     def __init__(self, documentId, response, bucketName, objectName, forms, tables, ddb, elasticsearchDomain=None):
@@ -79,6 +80,7 @@ class OutputGenerator:
 
     def _outputForm(self, page, p):
         csvData = []
+        key_value_pairs = {}
         for field in page.form.fields:
             csvItem = []
             if(field.key):
@@ -90,10 +92,16 @@ class OutputGenerator:
             else:
                 csvItem.append("")
             csvData.append(csvItem)
+            if ":" in csvItem[0]:
+                csv_key = csvItem[0].split(":")[0]
+            else:
+                csv_key = csvItem[0]
+            key_value_pairs[csv_key] = csvItem[1]
         csvFieldNames = ['Key', 'Value']
         opath = "{}page-{}-forms.csv".format(self.outputPath, p)
         S3Helper.writeCSV(csvFieldNames, csvData, self.bucketName, opath)
         self.saveItem(self.documentId, "page-{}-Forms".format(p), opath)
+        return key_value_pairs
 
     def _outputTable(self, page, p):
 
@@ -114,7 +122,7 @@ class OutputGenerator:
         S3Helper.writeCSVRaw(csvData, self.bucketName, opath)
         self.saveItem(self.documentId, "page-{}-Tables".format(p), opath)
 
-    def indexDocument(self, text, comprehendEntities):
+    def indexDocument(self, text, entitiesToIndex):
         
         if(self.elasticsearchDomain):
 
@@ -147,7 +155,7 @@ class OutputGenerator:
                 }
 
                 # add comprehend entities while indexing the document
-                for key, val in comprehendEntities.items():
+                for key, val in entitiesToIndex.items():
                     key = key.lower()
                     if(key == "date"):
                         for date in val:
@@ -212,13 +220,11 @@ class OutputGenerator:
             docText = docText + page.text + "\n"
 
             if(self.forms):
-                self._outputForm(page, p)
+                key_val_pairs = self._outputForm(page, p)
 
             if(self.tables):
                 self._outputTable(page, p)
 
             p = p + 1
-
-        return docText
-        # if(self.elasticsearchDomain):
-        #     self._indexDocument(docText)
+        
+        return {"docText": docText, "KVPairs": key_val_pairs}
