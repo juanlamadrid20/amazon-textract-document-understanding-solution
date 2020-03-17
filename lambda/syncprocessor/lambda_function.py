@@ -87,17 +87,17 @@ def processImage(documentId, features, bucketName, outputBucketName, objectName,
     print("path: " +  path)
     maxPages = 100
     comprehendClient = ComprehendHelper()
-    comprehendAndMedicalEntities = comprehendClient.processComprehend(outputBucketName, 'response.json', path, maxPages)
+    comprehendandMedicalEntities = comprehendClient.processComprehend(outputBucketName, 'response.json', path, maxPages)
 
     print("DocumentId: {}".format(documentId))
-    print("Processed Comprehend data: {}".format(comprehendAndMedicalEntities))
+    print("Processed Comprehend data: {}".format(comprehendandMedicalEntities))
 
     for key, val in opg_output["KVPairs"].items():
-        if key not in comprehendAndMedicalEntities:
-            comprehendAndMedicalEntities[key] = val
+        if key not in comprehendandMedicalEntities:
+            comprehendandMedicalEntities[key] = val
         else:
-            comprehendAndMedicalEntities[key].add(val)
-    opg.indexDocument(opg_output["docText"], comprehendAndMedicalEntities)
+            comprehendandMedicalEntities[key].add(val)
+    opg.indexDocument(opg_output["docText"], comprehendandMedicalEntities)
 
     ds = datastore.DocumentStore(documentsTableName, outputTableName)
     ds.markDocumentComplete(documentId)
