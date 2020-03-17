@@ -7,6 +7,8 @@ import boto3
 import datetime
 
 UNSUPPORTED_DATE_FORMAT = "UNSUPPORTED_DATE_FORMAT"
+DOCTEXT = "docText"
+KVPAIRS = "KVPairs"
 
 def round_floats(o):
     if isinstance(o, float):
@@ -231,4 +233,4 @@ class OutputGenerator:
 
             p = p + 1
         
-        return {"docText": docText, "KVPairs": key_val_pairs}
+        return {DOCTEXT: docText, KVPAIRS: key_val_pairs}

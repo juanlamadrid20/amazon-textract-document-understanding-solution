@@ -7,6 +7,8 @@ from og import OutputGenerator
 import datastore
 from comprehendHelper import ComprehendHelper
 
+DOCTEXT = "docText"
+KVPAIRS = "KVPairs"
 
 def generatePdf(documentId, bucketName, objectName, responseBucketName):
     
@@ -116,18 +118,18 @@ def processRequest(request):
     print("path: " +  path)
     maxPages = 100
     comprehendClient = ComprehendHelper()
-    comprehendandMedicalEntities = comprehendClient.processComprehend(outputBucketName, 'response.json', path, maxPages)
+    comprehendAndMedicalEntities = comprehendClient.processComprehend(outputBucketName, 'response.json', path, maxPages)
 
     print("DocumentId: {}".format(jobTag))
-    print("Processed Comprehend Data: {}".format(comprehendandMedicalEntities))
+    print("Processed Comprehend Data: {}".format(comprehendAndMedicalEntities))
 
     # index document once the comprehend entities and KVPairs have been extracted
-    for key, val in opg_output["KVPairs"].items():
-        if key not in comprehendandMedicalEntities:
-            comprehendandMedicalEntities[key] = val
+    for key, val in opg_output[KVPAIRS].items():
+        if key not in comprehendAndMedicalEntities:
+            comprehendAndMedicalEntities[key] = val
         else:
-            comprehendandMedicalEntities[key].add(val)
-    opg.indexDocument(opg_output["docText"], comprehendandMedicalEntities)
+            comprehendAndMedicalEntities[key].add(val)
+    opg.indexDocument(opg_output[DOCTEXT], comprehendAndMedicalEntities)
 
     ds = datastore.DocumentStore(documentsTable, outputTable)
     ds.markDocumentComplete(jobTag)
